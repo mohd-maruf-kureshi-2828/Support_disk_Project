@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Support Desk{% endblock %}</title>
+<style>
+  *{box-sizing:border-box} body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f4f6f8;color:#1f2933}
+  nav{background:#1e3a5f;color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  nav a{color:#fff;text-decoration:none} nav .sp{flex:1} nav form{display:inline}
+  nav button{background:none;border:1px solid #fff;color:#fff;border-radius:4px;padding:3px 8px;cursor:pointer}
+  main{max-width:1050px;margin:18px auto;padding:0 14px}
+  .card{background:#fff;border-radius:8px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px #0002}
+  table{width:100%;border-collapse:collapse} th,td{text-align:left;padding:8px;border-bottom:1px solid #e5e9ee;font-size:14px}
+  .scroll{overflow-x:auto} h1,h2{margin-top:0}
+  input,select,textarea{padding:7px;border:1px solid #c5ccd3;border-radius:5px;font:inherit;max-width:100%}
+  textarea{width:100%} .btn{background:#1e63b5;color:#fff;border:0;border-radius:5px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+  .btn.sec{background:#5b6b7b} .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+  .b{padding:2px 8px;border-radius:10px;font-size:12px;background:#e5e9ee;white-space:nowrap}
+  .b-open{background:#dbeafe}.b-assigned{background:#e0e7ff}.b-in_progress{background:#fef3c7}
+  .b-pending_student{background:#fde68a}.b-resolved{background:#d1fae5}.b-closed{background:#e5e7eb}
+  .p-urgent{background:#fecaca;color:#991b1b}.p-high{background:#fed7aa}.p-medium{background:#e5e9ee}.p-low{background:#f3f4f6}
+  .s-breached,.s-breached-late{background:#fecaca;color:#991b1b}.s-at-risk{background:#fed7aa}
+  .s-on-track,.s-met{background:#d1fae5}.s-paused{background:#e0e7ff}
+  .msg{padding:10px;border-radius:6px;margin-bottom:10px;background:#d1fae5}.msg.error{background:#fecaca}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .stat{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px #0002}.stat b{font-size:26px;display:block}
+  .tl{border-left:3px solid #c5ccd3;margin-left:6px;padding-left:12px} .tl div{margin-bottom:12px}
+  .muted{color:#6b7885;font-size:13px} .internal{background:#fffbeb;padding:6px;border-radius:5px}
+</style>
+</head>
+<body>
+<nav>
+  <strong>Support Desk</strong>
+  {% if user.is_authenticated %}
+    <a href="{% url 'ticket_list' %}">{% if is_support %}All tickets{% else %}My tickets{% endif %}</a>
+    <a href="{% url 'ticket_create' %}">+ New ticket</a>
+    {% if is_manager %}<a href="{% url 'dashboard' %}">Dashboard</a>{% endif %}
+    <span class="sp"></span>
+    <span>{{ user.username }}{% if is_manager %} (manager){% elif is_support %} (staff){% endif %}</span>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Logout</button></form>
+  {% endif %}
+</nav>
+<main>
+  {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

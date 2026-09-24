@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.reference }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>{{ ticket.reference }} - {{ ticket.title }}</h1>
+  <p>
+    <span class="b b-{{ ticket.status|lower }}">{{ ticket.get_status_display }}</span>
+    <span class="b p-{{ ticket.priority|lower }}">{{ ticket.get_priority_display }}</span>
+    <span class="b s-{{ ticket.sla_state|slugify }}">SLA: {{ ticket.sla_state }}</span>
+    {% if ticket.escalation_level %}<span class="b p-urgent">Escalated L{{ ticket.escalation_level }}</span>{% endif %}
+    {% if ticket.reopen_count %}<span class="b">Reopened {{ ticket.reopen_count }}x</span>{% endif %}
+  </p>
+  <p class="muted">
+    Category: {{ ticket.category.name }} | Student: {{ ticket.student.username }} |
+    Owner: {{ ticket.assigned_to.username|default:"unassigned" }} |
+    Age: {{ ticket.created_at|timesince }} | SLA due: {{ ticket.due_at|date:"d M Y, H:i" }}
+    {% if ticket.status == "PENDING_STUDENT" %}(SLA paused until student replies){% endif %}
+  </p>
+  <p style="white-space:pre-wrap">{{ ticket.description }}</p>
+</div>
+
+{% if next_statuses or is_support %}
+<div class="card">
+  <h2>Actions</h2>
+  {% if next_statuses %}
+  <form method="post" class="filters">{% csrf_token %}<input type="hidden" name="action" value="status">
+    <select name="status">{% for v,l in next_statuses %}<option value="{{ v }}">{{ l }}{% if ticket.status == "RESOLVED" and v == "IN_PROGRESS" %} (reopen){% endif %}</option>{% endfor %}</select>
+    <input name="note" placeholder="Note (optional)" size="30"><button class="btn">Update status</button>
+  </form>
+  {% endif %}
+  {% if is_support %}
+  <form method="post" class="filters">{% csrf_token %}<input type="hidden" name="action" value="assign">
+    <select name="assignee"><option value="">-- unassigned --</option>
+      {% for u in assignees %}<option value="{{ u.id }}" {% if ticket.assigned_to_id == u.id %}selected{% endif %}>{{ u.username }}</option>{% endfor %}</select>
+    <button class="btn sec">Assign</button>
+  </form>
+  <form method="post" class="filters">{% csrf_token %}<input type="hidden" name="action" value="priority">
+    <select name="priority">{% for v,l in priorities %}<option value="{{ v }}" {% if ticket.priority == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <button class="btn sec">Change priority</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Add comment</h2>
+  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="comment">
+    <textarea name="text" rows="3" required></textarea>
+    {% if is_support %}<label><input type="checkbox" name="internal" value="1"> Internal note (hidden from student)</label><br>{% endif %}
+    <button class="btn">Post</button>
+    {% if ticket.status == "PENDING_STUDENT" and not is_support %}<span class="muted"> Replying resumes the ticket.</span>{% endif %}
+  </form>
+</div>
+
+<div class="card">
+  <h2>Activity history</h2>
+  <div class="tl">
+    {% for a in activities %}
+    <div {% if a.is_internal %}class="internal"{% endif %}>
+      <strong>{{ a.action }}</strong> <span class="muted">by {{ a.actor.username|default:"system" }}, {{ a.created_at|date:"d M H:i" }}{% if a.is_internal %} (internal){% endif %}</span>
+      {% if a.note %}<br>{{ a.note }}{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

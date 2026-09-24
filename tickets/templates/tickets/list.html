@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>{% if is_support %}All tickets{% else %}My tickets{% endif %}</h1>
+  {% if is_support %}
+  <form method="get" class="filters">
+    <input name="q" placeholder="Search title / student" value="{{ filters.q }}">
+    <select name="status"><option value="">Any status</option>
+      {% for v,l in statuses %}<option value="{{ v }}" {% if filters.status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <select name="priority"><option value="">Any priority</option>
+      {% for v,l in priorities %}<option value="{{ v }}" {% if filters.priority == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <select name="category"><option value="">Any category</option>
+      {% for c in categories %}<option value="{{ c.id }}" {% if filters.category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
+    <label><input type="checkbox" name="mine" value="1" {% if filters.mine %}checked{% endif %}> Mine</label>
+    <label><input type="checkbox" name="unassigned" value="1" {% if filters.unassigned %}checked{% endif %}> Unassigned</label>
+    <label><input type="checkbox" name="overdue" value="1" {% if filters.overdue %}checked{% endif %}> Overdue</label>
+    <button class="btn">Filter</button> <a class="btn sec" href="{% url 'ticket_list' %}">Reset</a>
+  </form>
+  {% endif %}
+  <div class="scroll"><table>
+    <tr><th>Ref</th><th>Title</th><th>Category</th>{% if is_support %}<th>Student</th>{% endif %}<th>Status</th><th>Priority</th><th>Owner</th><th>Age</th><th>SLA</th></tr>
+    {% for t in tickets %}
+    <tr>
+      <td><a href="{% url 'ticket_detail' t.pk %}">{{ t.reference }}</a></td>
+      <td>{{ t.title }}</td><td>{{ t.category.name }}</td>
+      {% if is_support %}<td>{{ t.student.username }}</td>{% endif %}
+      <td><span class="b b-{{ t.status|lower }}">{{ t.get_status_display }}</span></td>
+      <td><span class="b p-{{ t.priority|lower }}">{{ t.get_priority_display }}</span></td>
+      <td>{{ t.assigned_to.username|default:"-" }}</td>
+      <td>{{ t.created_at|timesince }}</td>
+      <td><span class="b s-{{ t.sla_state|slugify }}">{{ t.sla_state }}</span></td>
+    </tr>
+    {% empty %}<tr><td colspan="9">No tickets found.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endblock %}

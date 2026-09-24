@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Manager dashboard</h1>
+<div class="grid" style="margin-bottom:16px">
+  <div class="stat"><b>{{ total }}</b>Total tickets</div>
+  <div class="stat"><b>{{ active }}</b>Active</div>
+  <div class="stat"><b style="color:#b91c1c">{{ overdue }}</b><a href="{% url 'ticket_list' %}?overdue=1">SLA breached</a></div>
+  <div class="stat"><b>{{ escalated }}</b>Escalated</div>
+  <div class="stat"><b>{{ unassigned }}</b><a href="{% url 'ticket_list' %}?unassigned=1">Unassigned</a></div>
+  <div class="stat"><b>{% if compliance is None %}-{% else %}{{ compliance }}%{% endif %}</b>SLA met (resolved)</div>
+  <div class="stat"><b>{% if avg_hours is None %}-{% else %}{{ avg_hours }}h{% endif %}</b>Avg resolution</div>
+</div>
+<div class="card"><h2>Staff workload</h2><div class="scroll"><table>
+  <tr><th>Staff</th><th>Active</th><th>Overdue</th></tr>
+  {% for s in staff %}<tr><td>{{ s.username }}</td><td>{{ s.active }}</td><td>{{ s.overdue }}</td></tr>{% endfor %}
+</table></div></div>
+<div class="card"><h2>By status</h2><div class="scroll"><table>
+  {% for label,n in by_status %}<tr><td>{{ label }}</td><td>{{ n }}</td></tr>{% empty %}<tr><td>No data</td></tr>{% endfor %}
+</table></div></div>
+<div class="card"><h2>By category</h2><div class="scroll"><table>
+  {% for c in by_category %}<tr><td>{{ c.name }}</td><td>{{ c.n }}</td></tr>{% endfor %}
+</table></div></div>
+<div class="card"><h2>Oldest active tickets (ageing)</h2><div class="scroll"><table>
+  <tr><th>Ref</th><th>Title</th><th>Owner</th><th>Age</th><th>SLA</th></tr>
+  {% for t in oldest %}<tr><td><a href="{% url 'ticket_detail' t.pk %}">{{ t.reference }}</a></td><td>{{ t.title }}</td>
+  <td>{{ t.assigned_to.username|default:"-" }}</td><td>{{ t.created_at|timesince }}</td>
+  <td><span class="b s-{{ t.sla_state|slugify }}">{{ t.sla_state }}</span></td></tr>{% endfor %}
+</table></div></div>
+{% endblock %}
