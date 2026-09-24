@@ -1,4 +1,4 @@
-# Student Support & Ticket Management (Assignment 4)
+# Student Support & Ticket Management
 
 Django + SQLite web app where students raise administrative requests (fees, attendance, ID card,
 documents, certificates, other) and staff own, prioritise, process and resolve them, with SLA tracking,
